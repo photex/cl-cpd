@@ -55,9 +55,10 @@
     (unless (string= "{" (read-line in nil))
       (error (format nil "~a is not a valid clip file." filename)))
     
-    (loop for line = (read-line in nil)
-       until (string= "}" line) ;; Signals the end of the clip
-       collect (if line (string-trim '(#\space) line)
-                   (error "Unexpected end of file!")))))
+    (read-clip
+     (loop for line = (read-line in nil)
+        until (string= "}" line) ;; Signals the end of the clip
+        collect (if line (string-trim '(#\space) line)
+                    (error "Unexpected end of file!"))))))
 
 (defun to-file () nil)
