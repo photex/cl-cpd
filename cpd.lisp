@@ -5,11 +5,9 @@
 (defconstant +attr-regex+ "^(.+) = (.+)$")
 
 (defun read-channel-data (line)
-  (let ((s (make-string-input-stream line)))
-    (unwind-protect
-         (loop for n = (read s nil)
-            while n collect n)
-      (close s))))
+  (with-input-from-string (in line)
+    (loop for n = (read in nil)
+       while n collect n)))
 
 (defmacro parse-clip-line (line)
   `(ppcre:register-groups-bind (attr value) (+attr-regex+ ,line)
