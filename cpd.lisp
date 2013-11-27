@@ -2,7 +2,7 @@
 
 (in-package #:cpd)
 
-(defconstant +attr-regex+ "^(.+) = (.+)$")
+(defparameter +attr-regex+ "^(.+) = (.+)$")
 
 (defun read-channel-data (line)
   (with-input-from-string (in (format nil "#(~a)" line))
