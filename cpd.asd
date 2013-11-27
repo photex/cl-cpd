@@ -6,8 +6,7 @@
   :author "Chip Collier <photex@lofidelitygames.com>"
   :license "MIT"
   :depends-on (#:cl-ppcre
-               #:cxml
-               #:sb-cga)
+               #:optima)
   :components ((:file "package")
                (:file "cpd")))
 

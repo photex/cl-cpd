@@ -1,5 +1,7 @@
 ;;;; package.lisp
 
 (defpackage #:cpd
-  (:use #:cl))
+  (:use #:cl #:optima)
+  (:export #:from-file
+           #:to-file))
 
