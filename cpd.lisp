@@ -2,6 +2,8 @@
 
 (in-package #:cpd)
 
+(defconstant +attr-regex+ "^(.+) = (.+)$")
+
 (defun read-channel-data (line)
   (let ((s (make-string-input-stream line)))
     (unwind-protect
@@ -9,25 +11,45 @@
             while n collect n)
       (close s))))
 
-(defun from-lines (lines)
-  (let ((rate 0)
-        (start 0)
-        (track-length 0)
-        (track-count 0))
-    (loop for line in lines
-       do (optima:match line
-            ("{" ()) ;; start track
-            ("}" ()) ;; end track
-            (otherwise
-             (ppcre:register-groups-bind (attr value) ("^(.+) = (.+)$" line)
-               (optima:match attr
-                 ("rate" (setf rate (parse-integer value)))
-                 ("start" (setf start (parse-integer value)))
-                 ("tracklength" (setf track-length (parse-integer value)))
-                 ("tracks" (setf track-count (parse-integer value)))
-                 ("name" nil)
-                 ("data" nil))))))
-    (list :rate rate :start start :track-length track-length :track-count track-count)))
+(defmacro parse-clip-line (line)
+  `(ppcre:register-groups-bind (attr value) (+attr-regex+ ,line)
+     (optima:match attr
+       ("rate" (list :rate (parse-integer value)))
+       ("start" (list :start (parse-integer value)))
+       ("tracklength" (list :track-length (parse-integer value)))
+       ("tracks" (list :track-count (parse-integer value)))
+       (otherwise ()))))
+
+(defmacro parse-track-line (line)
+  `(ppcre:register-groups-bind (attr value) (+attr-regex+ ,line)
+     (optima:match attr
+       ("name" (list :name value))
+       ("data" (list :data (read-channel-data value)))
+       (otherwise ()))))
+
+(defun read-track (lines)
+  (labels ((next-line (lines result)
+             (let ((line (first lines)))
+               (optima:match line
+                 ("}" (list (rest lines) result))
+                 (otherwise
+                  (next-line (rest lines)
+                             (append result (parse-track-line line))))))))
+    (next-line lines ())))
+
+(defun read-clip (lines)
+  (labels ((next-line (lines result)
+             (if lines
+                 (let ((line (first lines)))
+                   (optima:match line
+                     ("{" (let ((track-result (read-track (rest lines))))
+                            (push (second track-result) (getf result :tracks))
+                            (next-line (first track-result) result)))
+                     (otherwise
+                      (next-line (rest lines)
+                                 (append result (parse-clip-line line))))))
+                 result)))
+    (next-line lines '(:tracks ()))))
 
 (defun from-file (filename)
   (with-open-file (in filename
