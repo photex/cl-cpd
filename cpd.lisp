@@ -5,8 +5,8 @@
 (defparameter +attr-regex+ "^(.+) = (.+)$")
 
 (defun read-channel-data (line)
-  (with-input-from-string (in (format nil "#(~a)" line))
-    (read in nil)))
+  (with-input-from-string (s (format nil "#(~a)" line))
+    (read s nil)))
 
 (defmacro parse-clip-line (line)
   `(ppcre:register-groups-bind (attr value) (+attr-regex+ ,line)
@@ -17,11 +17,22 @@
        ("tracks" (list :track-count (parse-integer value)))
        (otherwise ()))))
 
+(defmacro parse-extend-region-type (value)
+  `(optima:match ,value
+     ("hold" :hold)
+     ("slope" :slope)
+     ("cycle" :cycle)
+     ("mirror" :mirror)
+     ("default" :default)))
+
 (defmacro parse-track-line (line)
   `(ppcre:register-groups-bind (attr value) (+attr-regex+ ,line)
      (optima:match attr
        ("name" (list :name value))
        ("data" (list :data (read-channel-data value)))
+       ("lefttype" (list :left-type (parse-extend-region-type value)))
+       ("righttype" (list :right-type (parse-extend-region-type value)))
+       ("default" (list :default (with-input-from-string (s value) (read s nil))))
        (otherwise ()))))
 
 (defun read-track (lines)
