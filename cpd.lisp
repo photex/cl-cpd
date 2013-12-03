@@ -90,14 +90,14 @@
                (format out "~a~aname = ~a~%" padding padding name)
                (format out "~a~adata = " padding padding)
                (loop for i across data
-                  do (format out "~a " i))
+                  do (format out "~F " i))
                (format out "~%")
                (when left-type
-                 (format out "~a~alefttype = ~a" padding padding (extend-region-type-name left-type)))
+                 (format out "~a~alefttype = ~a~%" padding padding (extend-region-type-name left-type)))
                (when right-type
-                 (format out "~a~arighttype = ~a" padding padding (extend-region-type-name right-type)))
+                 (format out "~a~arighttype = ~a~%" padding padding (extend-region-type-name right-type)))
                (when default
-                 (format out "~a~adefault = ~a" padding padding default))
+                 (format out "~a~adefault = ~a~%" padding padding default))
                (format out "~a}~%" padding))))
     (let ((rate (format nil "rate = ~a" (getf clip :rate)))
           (start (format nil "start = ~a" (getf clip :start)))
